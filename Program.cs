@@ -1118,6 +1118,7 @@ class MainForm : Form
         bluetoothTimer.Tick += delegate
         {
             ScanBluetooth();
+            ShowCurrentOutput(Audio.CurrentOutput()); // also catches switches made in Windows
             if (Visible && !outputBox.DroppedDown && !retryTimer.Enabled) RefreshOutputs();
         };
         bluetoothTimer.Start();
@@ -1427,6 +1428,13 @@ class MainForm : Form
         outputBox.Items.Clear();
         foreach (AudioDevice output in outputs) outputBox.Items.Add(output);
         if (current != null) outputBox.SelectedItem = outputs.FirstOrDefault(d => d.Name == current.Name);
+        ShowCurrentOutput(current);
+    }
+
+    void ShowCurrentOutput(AudioDevice current)
+    {
+        string text = current != null ? current.Name : L.T("沒有輸出裝置", "No output device");
+        tray.Text = text.Length > 63 ? text.Substring(0, 63) : text; // NotifyIcon rejects text over 63 characters
     }
 
     void RefreshSwitchMenu()
@@ -1478,7 +1486,6 @@ class MainForm : Form
             : L.T("未連線", "not connected");
         headsetLabel.Text = prefix + text
             + (connectedHeadsets.Count > 0 ? L.T("（", " (") + connectedHeadsets.Last() + L.T("）", ")") : "");
-        tray.Text = prefix + text; // NotifyIcon rejects text over 63 characters, so no device name
     }
 
     void OnHeadsetChanged(string output, HeadsetState next, string reason)
